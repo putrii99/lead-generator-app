@@ -6,7 +6,7 @@ from serpapi import GoogleSearch
 import time
 
 # Konfigurasi API SerpAPI
-API_KEY = "ab22ffc76aacbae08873ae17748f44b37d6b497d226a76fbfc7b3bc719d3ac4c"
+API_KEY = st.secrets["api_key"]
 
 #fungsi pencarian leads
 def search_leads(query, location="Indonesia", num_results=10):
