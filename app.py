@@ -44,11 +44,6 @@ def extract_email_from_website(url):
     except Exception as e:
         return f"Error: {str(e)}"
 
-# Konfigurasi halaman
-st.set_page_config(page_title="Lead Finder 🔎", layout="wide")
-st.title("🔎 Lead Generator - Email Scraper")
-st.markdown("Cari lead + ambil email dari hasil pencarian Google.")
-
 # Animasi / header
 st.markdown("""
     <h1 style='text-align: center; color: #4B8BBE;'>🔎 Lead Finder - Email Scraper</h1>
