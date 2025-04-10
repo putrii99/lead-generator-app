@@ -9,7 +9,82 @@ from email.utils import parseaddr
 st.set_page_config(page_title="Lead Generator", layout="wide")
 
 #API SerpAPI
-API_KEY = st.secrets["api_key"]
+API_KEY = "ab22ffc76aacbae08873ae17748f44b37d6b497d226a76fbfc7b3bc719d3ac4c"
+
+#pilihan bahasa
+lang = st.sidebar.selectbox("🌐 Language / Bahasa", ["English", "Bahasa Indonesia"])
+
+#dictionary terjemahan UI
+translations = {
+    "title": {
+        "English": "💼 Lead Generator - Email Scraper",
+        "Bahasa Indonesia": "💼 Lead Generator - Pencari Email"
+    },
+    "description": {
+        "English": "Search for leads + extract emails from Google search results.",
+        "Bahasa Indonesia": "Cari prospek + ekstrak email dari hasil pencarian Google."
+    },
+    "search_query": {
+        "English": "🔍 Search Query",
+        "Bahasa Indonesia": "🔍 Kata Kunci"
+    },
+    "location": {
+        "English": "🌍 Location",
+        "Bahasa Indonesia": "🌍 Lokasi"
+    },
+    "num_results": {
+        "English": "🔢 Number of Results",
+        "Bahasa Indonesia": "🔢 Jumlah Hasil"
+    },
+    "filter_option": {
+        "English": "📎 Show leads:",
+        "Bahasa Indonesia": "📎 Tampilkan lead:"
+    },
+    "all": {
+        "English": "All",
+        "Bahasa Indonesia": "Semua"
+    },
+    "with_email": {
+        "English": "Only with valid email",
+        "Bahasa Indonesia": "Hanya yang punya email valid"
+    },
+    "without_email": {
+        "English": "Without valid email",
+        "Bahasa Indonesia": "Tanpa email valid"
+    },
+    "start_button": {
+        "English": "🚀 Start Scraping",
+        "Bahasa Indonesia": "🚀 Mulai Scrape"
+    },
+    "loading": {
+        "English": "🔄 Scraping and validating emails...",
+        "Bahasa Indonesia": "🔄 Sedang mencari dan memvalidasi email..."
+    },
+    "results_found": {
+        "English": "✅ Found {count} leads based on filter.",
+        "Bahasa Indonesia": "✅ Ditemukan {count} lead berdasarkan filter."
+    },
+    "download": {
+        "English": "⬇️ Download CSV",
+        "Bahasa Indonesia": "⬇️ Unduh CSV"
+    },
+    "email": {
+        "English": "✉️ Email:",
+        "Bahasa Indonesia": "✉️ Email:"
+    },
+    "footer": {
+        "English": "Built with ❤️ by Putri",
+        "Bahasa Indonesia": "Dibuat dengan ❤️ oleh Putri"
+    },
+    "warning_query": {
+        "English": "❗ Please enter a search query first.",
+        "Bahasa Indonesia": "❗ Masukkan kata kunci terlebih dahulu."
+    }
+}
+
+#fungsi ambil teks sesuai bahasa
+def t(key):
+    return translations.get(key, {}).get(lang, key)
 
 #fungsi pencarian leads
 def search_leads(query, location="Indonesia", num_results=10, mode="Global"):
@@ -65,7 +140,7 @@ def is_valid_email(email):
     name, addr = parseaddr(email)
     return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
 
-# ---------- UI ----------
+#---------- UI ----------
 st.markdown("""
     <style>
         .title-style {
@@ -96,56 +171,46 @@ st.markdown("""
 
 #sidebar input
 mode = st.radio("🌍 Mode Bahasa", ["Global", "Lokal"], horizontal=True)
-st.markdown("<div class='title-style'>💼Lead Generator - Email Scraper</div>", unsafe_allow_html=True)
-st.markdown("<p class='desc-style'>Search for leads + extract emails from Google search results.</p>", unsafe_allow_html=True)
-st.sidebar.header("🎯 Parameter Pencarian")
-query = st.sidebar.text_input("🔍Kata kunci")
-location = st.sidebar.text_input("🌍 Lokasi", "Indonesia")
-num_results = st.sidebar.slider("🔢 Jumlah hasil", 5, 5000, 10)
+st.markdown(f"<div class='title-style'>{t('title')}</div>", unsafe_allow_html=True)
+st.markdown(f"<p class='desc-style'>{t('description')}</p>", unsafe_allow_html=True)
 
-#contoh kategoru bisnis
-    #"Marketing Agency Jakarta",
-    #"Tech Company Bandung",
-    #"HR Consultant Indonesia",
-    #"Plastic Supplier Indonesia",
-    #"Klinik Kecantikan Yogyakarta",
-    #"Restoran Vegan Jakarta",
-    #"Kursus Online Python"
-
-#sidebar filter
-filter_option = st.sidebar.radio(
-    "📎 Tampilkan lead:",
-    ["Semua", "Hanya yang punya email valid", "Tanpa email valid"]
-)
+# Sidebar
+query = st.sidebar.text_input(t("search_query"))
+location = st.sidebar.text_input(t("location"), "Indonesia")
+num_results = st.sidebar.slider(t("num_results"), 5, 100, 10)
+filter_option = st.sidebar.radio(t("filter_option"), [t("all"), t("with_email"), t("without_email")])
 
 #tombol utama
-if st.sidebar.button("🚀Mulai Scrape"):
-    with st.spinner("🔄 Sedang mencari dan memvalidasi email..."):
-        df = search_leads(query, location, num_results, mode)
-        df["email"] = df["link"].apply(extract_email_from_website)
-        df["valid_email"] = df["email"].apply(is_valid_email)
-        
-        #terapkan filter
-        if filter_option == "Hanya yang punya email valid":
-            df= df[df["valid_email"] == True]
-        elif filter_option == "Tanpa email valid":
-            df = df[df["valid_email"] == False]
-        
-        st.success(f"✅Ditemukan {len(df)} lead berdasarkan filter.")
-        #st.dataframe(df, use_container_width=True)
+if st.sidebar.button(t("start_button")):
+    if not query:
+        st.warning(t("warning_query"))
+    else:
+        with st.spinner(t("loading")):
+            df = search_leads(query, location, num_results, mode)
+            df["email"] = df["link"].apply(extract_email_from_website)
+            df["valid_email"] = df["email"].apply(is_valid_email)
 
-        for i, row in df.iterrows():
-            with st.container():
-                st.markdown(f"### 🔗 [{row['title']}]({row['link']})")
-                st.write(row["snippet"])
-                st.markdown(f"🌐 `{row['domain']}`")
-                email_status = f"<span class='email-valid'>{row['email']}</span>" if "@" in row['email'] else f"<span class='email-invalid'>{row['email']}</span>"
-                st.markdown(f"✉️ Email: {email_status}", unsafe_allow_html=True)
-                st.markdown("---")
+            # Filter
+            if filter_option == t("with_email"):
+                df = df[df["valid_email"] == True]
+            elif filter_option == t("without_email"):
+                df = df[df["valid_email"] == False]
+
+            st.success(t("results_found").format(count=len(df)))
+
+            #tampilkan hasil
+            for i, row in df.iterrows():
+                with st.container():
+                    st.markdown(f"### 🔗 [{row['title']}]({row['link']})")
+                    st.write(row["snippet"])
+                    st.markdown(f"🌐 `{row['domain']}`")
+                    email_status = f"<span class='email-valid'>{row['email']}</span>" if "@" in row['email'] else f"<span class='email-invalid'>{row['email']}</span>"
+                    st.markdown(f"{t('email')} {email_status}", unsafe_allow_html=True)
+                    st.markdown("---")
 
         #tombol download
         csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button("⬇️ Download CSV", csv, "filtered_leads.csv", "text/csv")
+        st.download_button(t("download"), csv, "filtered_leads.csv", "text/csv")
 
         #footer
     st.markdown("""
